@@ -1,3 +1,4 @@
+import PublicFooter from "@/components/shared/PublicFooter";
 import PublicNavbar from "@/components/shared/PublicNavbar";
 import React from "react";
 
@@ -10,6 +11,7 @@ export default function CommonLayout({
     <>
       <PublicNavbar />
       {children}
+      <PublicFooter />
     </>
   );
 }
