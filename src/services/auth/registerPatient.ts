@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 export default async function registerPatient(
-  _currentState: any,
-  formData: any
-): Promise<any> {
+  _currentState: unknown,
+  formData: FormData
+): Promise<unknown> {
   try {
     const registerData = {
       password: formData.get("password"),
