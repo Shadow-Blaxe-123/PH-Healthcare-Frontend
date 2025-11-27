@@ -1,12 +1,16 @@
 "use client";
 
+import { useActionState } from "react";
 import { Button } from "./ui/button";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "./ui/field";
 import { Input } from "./ui/input";
 
 const LoginForm = () => {
+  const [state, formAction, ispending] = useActionState(() => {}, null);
+  console.log("state:", state, "ispending: ", ispending);
+
   return (
-    <form>
+    <form action={formAction}>
       <FieldGroup>
         <div className="grid grid-cols-1 gap-4">
           {/* Email */}
