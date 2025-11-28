@@ -1,6 +1,37 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+//  Types
+
+type UserRole = "ADMIN" | "DOCTOR" | "PATIENT";
+type RouteConfig = {
+  exact: string[];
+  patterns: RegExp[];
+};
+
+const authRoutes = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+];
+const commonProtectedRoutes: RouteConfig = {
+  exact: ["/my-profile", "/settings"],
+  patterns: [],
+};
+const doctorProtectedRoutes: RouteConfig = {
+  exact: [],
+  patterns: [/^\/doctor/],
+};
+const patientProtectedRoutes: RouteConfig = {
+  exact: [],
+  patterns: [/^\/dashboard/],
+};
+const adminProtectedRoutes: RouteConfig = {
+  exact: [],
+  patterns: [/^\/admin/],
+};
+
 // This function can be marked `async` if using `await` inside
 export function proxy(request: NextRequest) {
   return NextResponse.redirect(new URL("/da", request.url));
