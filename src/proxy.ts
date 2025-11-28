@@ -106,11 +106,24 @@ export async function proxy(request: NextRequest) {
   if (routeOwner === null) {
     return NextResponse.next();
   }
+  if (!accessToken) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathName);
+    return NextResponse.redirect(loginUrl);
+  }
   if (routeOwner === "COMMON") {
-    if (!accessToken) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
     return NextResponse.next();
+  }
+  if (
+    routeOwner === "ADMIN" ||
+    routeOwner === "DOCTOR" ||
+    routeOwner === "PATIENT"
+  ) {
+    if (userRole !== routeOwner) {
+      return NextResponse.redirect(
+        new URL(getDefaultDashboardRoute(userRole as UserRole), request.url)
+      );
+    }
   }
 
   return NextResponse.next();
