@@ -32,6 +32,47 @@ const adminProtectedRoutes: RouteConfig = {
   patterns: [/^\/admin/],
 };
 
+const isAuthRoutes = (pathName: string) => {
+  return authRoutes.some((route) => route === pathName);
+};
+
+const isRouteMatches = (pathName: string, routes: RouteConfig): boolean => {
+  if (routes.exact.includes(pathName)) {
+    return true;
+  }
+  return routes.patterns.some((pattern) => pattern.test(pathName));
+};
+
+const getRouteOwner = (
+  pathName: string
+): "ADMIN" | "DOCTOR" | "PATIENT" | "COMMON" | null => {
+  if (isRouteMatches(pathName, adminProtectedRoutes)) {
+    return "ADMIN";
+  }
+  if (isRouteMatches(pathName, doctorProtectedRoutes)) {
+    return "DOCTOR";
+  }
+  if (isRouteMatches(pathName, patientProtectedRoutes)) {
+    return "PATIENT";
+  }
+  if (isRouteMatches(pathName, commonProtectedRoutes)) {
+    return "COMMON";
+  }
+  return null;
+};
+
+const getDefaultDashboardRoute = (role: UserRole): string => {
+  if (role === "ADMIN") {
+    return "/admin/dashboard";
+  }
+  if (role === "DOCTOR") {
+    return "/doctor/dashboard";
+  }
+  if (role === "PATIENT") {
+    return "/dashboard";
+  }
+  return "/";
+};
 // This function can be marked `async` if using `await` inside
 export function proxy(request: NextRequest) {
   return NextResponse.redirect(new URL("/da", request.url));
