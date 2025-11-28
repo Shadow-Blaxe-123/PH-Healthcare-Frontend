@@ -1,10 +1,50 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
+import z from "zod";
+
+const registerValidationSchema = z
+  .object({
+    name: z.string().min(1, { error: "Name is required" }),
+    address: z.string().min(1, { error: "Address is required" }),
+    email: z.email({ error: "Invalid email address" }),
+    password: z
+      .string()
+      .min(6, { error: "Password must be at least 6 characters" }),
+    confirmPassword: z
+      .string()
+      .min(6, { error: "Password must be at least 6 characters" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
 export default async function registerPatient(
-  _currentState: unknown,
+  _currentState: any,
   formData: FormData
-): Promise<unknown> {
+): Promise<any> {
   try {
+    const validationData = {
+      name: formData.get("name"),
+      address: formData.get("address"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+      confirmPassword: formData.get("confirmPassword"),
+    };
+    const validatedFields = registerValidationSchema.safeParse(validationData);
+
+    if (!validatedFields.success) {
+      return {
+        success: false,
+        errors: validatedFields.error.issues.map((issue: any) => {
+          return {
+            field: issue.path[0],
+            message: issue.message,
+          };
+        }),
+      };
+    }
     const registerData = {
       password: formData.get("password"),
       patient: {

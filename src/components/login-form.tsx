@@ -31,7 +31,6 @@ const LoginForm = () => {
               name="email"
               type="email"
               placeholder="m@example.com"
-              required
             />
             {getFieldError("email") && (
               <FieldDescription className="text-red-600">
@@ -48,7 +47,6 @@ const LoginForm = () => {
               name="password"
               type="password"
               placeholder="Enter your password"
-              required
             />
             {getFieldError("password") && (
               <FieldDescription className="text-red-600">
