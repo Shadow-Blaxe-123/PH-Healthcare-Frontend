@@ -1,3 +1,5 @@
+import { JwtPayload, verify } from "jsonwebtoken";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -74,8 +76,44 @@ const getDefaultDashboardRoute = (role: UserRole): string => {
   return "/";
 };
 // This function can be marked `async` if using `await` inside
-export function proxy(request: NextRequest) {
-  return NextResponse.redirect(new URL("/da", request.url));
+export async function proxy(request: NextRequest) {
+  const cookieStore = await cookies();
+  const pathName = request.nextUrl.pathname;
+
+  const accessToken = request.cookies.get("accessToken")?.value || null;
+
+  let userRole: UserRole | null = null;
+  if (accessToken) {
+    const verifiedToken: JwtPayload | string = verify(
+      accessToken,
+      process.env.JWT_ACCESS_TOKEN_SECRET as string
+    );
+    if (typeof verifiedToken === "string") {
+      cookieStore.delete("accessToken");
+      cookieStore.delete("refreshToken");
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    userRole = verifiedToken.role;
+  }
+  const routeOwner = getRouteOwner(pathName);
+  const isAuth = isAuthRoutes(pathName);
+
+  if (accessToken && isAuth) {
+    return NextResponse.redirect(
+      new URL(getDefaultDashboardRoute(userRole as UserRole), request.url)
+    );
+  }
+  if (routeOwner === null) {
+    return NextResponse.next();
+  }
+  if (routeOwner === "COMMON") {
+    if (!accessToken) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    return NextResponse.next();
+  }
+
+  return NextResponse.next();
 }
 
 // Alternatively, you can use a default export:
