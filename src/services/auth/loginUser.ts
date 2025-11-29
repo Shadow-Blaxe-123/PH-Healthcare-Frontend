@@ -6,9 +6,9 @@ import {
   isValidRedirectForRole,
   UserRole,
 } from "@/lib/auth-utils";
+import { setCookie } from "@/lib/tokenHandlers";
 import { parse } from "cookie";
 import { JwtPayload, verify } from "jsonwebtoken";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import z from "zod";
 
@@ -76,16 +76,15 @@ export default async function loginUser(
     if (!refreshTokenObject) {
       throw new Error("Tokens not found in cookies");
     }
-    const cookieStore = await cookies();
 
-    cookieStore.set("accessToken", accessTokenObject.accessToken, {
+    await setCookie("accessToken", accessTokenObject.accessToken, {
       secure: true,
       httpOnly: true,
       maxAge: parseInt(accessTokenObject["Max-Age"]) || 1000 * 60 * 60 * 24,
       path: accessTokenObject.Path || "/",
       sameSite: accessTokenObject["SameSite"] || "none",
     });
-    cookieStore.set("refreshToken", refreshTokenObject.refreshToken, {
+    await setCookie("refreshToken", refreshTokenObject.refreshToken, {
       secure: true,
       httpOnly: true,
       maxAge:
@@ -102,10 +101,6 @@ export default async function loginUser(
     }
     const userRole: UserRole = verifiedToken.role;
 
-    // const redirectPath = redirectTo
-    //   ? redirectTo.toString()
-    //   : getDefaultDashboardRoute(userRole);
-    // redirect(redirectPath);
     if (!result.success) {
       throw new Error("Login failed");
     }
