@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
+import {
+  getDefaultDashboardRoute,
+  isValidRedirectForRole,
+  UserRole,
+} from "@/lib/auth-utils";
 import { parse } from "cookie";
 import { JwtPayload, verify } from "jsonwebtoken";
 import { cookies } from "next/headers";
@@ -49,8 +54,6 @@ export default async function loginUser(
     });
     console.log("res:", res);
 
-    const result = await res.json();
-
     const setCookieHeaders = res.headers.getSetCookie();
 
     if (setCookieHeaders && setCookieHeaders.length > 0) {
@@ -96,24 +99,21 @@ export default async function loginUser(
     if (typeof verifiedToken === "string") {
       throw new Error("Invalid token");
     }
-    const userRole = verifiedToken.role;
+    const userRole: UserRole = verifiedToken.role;
 
-    const getDefaultDashboardRoute = (role: string): string => {
-      if (role === "ADMIN") {
-        return "/admin/dashboard";
+    // const redirectPath = redirectTo
+    //   ? redirectTo.toString()
+    //   : getDefaultDashboardRoute(userRole);
+    // redirect(redirectPath);
+
+    if (redirectTo) {
+      const requestedPath = redirectTo.toString();
+      if (isValidRedirectForRole(requestedPath, userRole)) {
+        redirect(requestedPath);
+      } else {
+        redirect(getDefaultDashboardRoute(userRole));
       }
-      if (role === "DOCTOR") {
-        return "/doctor/dashboard";
-      }
-      if (role === "PATIENT") {
-        return "/dashboard";
-      }
-      return "/";
-    };
-    const redirectPath = redirectTo
-      ? redirectTo.toString()
-      : getDefaultDashboardRoute(userRole);
-    redirect(redirectPath);
+    }
   } catch (error: any) {
     if (error?.digest?.startsWith("NEXT_REDIRECT")) {
       throw error;
