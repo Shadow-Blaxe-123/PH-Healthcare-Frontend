@@ -8,13 +8,14 @@ import {
   isAuthRoutes,
   UserRole,
 } from "./lib/auth-utils";
-import { deleteCookie } from "./lib/tokenHandlers";
+import { deleteCookie, getCookie } from "./lib/tokenHandlers";
 
 // This function can be marked `async` if using `await` inside
 export async function proxy(request: NextRequest) {
   const pathName = request.nextUrl.pathname;
 
-  const accessToken = request.cookies.get("accessToken")?.value || null;
+  // const accessToken = request.cookies.get("accessToken")?.value || null;
+  const accessToken = (await getCookie("accessToken")) || null;
 
   let userRole: UserRole | null = null;
   if (accessToken) {

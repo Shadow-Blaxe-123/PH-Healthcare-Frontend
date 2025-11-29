@@ -13,7 +13,7 @@ export const setCookie = async (
 };
 export const getCookie = async (key: string) => {
   const cookieStore = await cookies();
-  return cookieStore.get(key);
+  return cookieStore.get(key)?.value || null;
 };
 export const deleteCookie = async (key: string) => {
   const cookieStore = await cookies();
