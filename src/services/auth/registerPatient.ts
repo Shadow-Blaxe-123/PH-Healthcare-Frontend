@@ -2,6 +2,7 @@
 "use server";
 
 import z from "zod";
+import loginUser from "./loginUser";
 
 const registerValidationSchema = z
   .object({
@@ -21,7 +22,7 @@ const registerValidationSchema = z
   });
 
 export default async function registerPatient(
-  _currentState: any,
+  currentState: any,
   formData: FormData
 ): Promise<any> {
   try {
@@ -62,11 +63,19 @@ export default async function registerPatient(
         method: "POST",
         body: newFormData,
       }
-    ).then((res) => res.json());
+    );
+    const result = await res.json();
     console.log("res:", res);
 
-    return res;
-  } catch (error) {
+    if (result.success) {
+      await loginUser(currentState, formData);
+    }
+
+    return result;
+  } catch (error: any) {
+    if (error?.digest?.startsWith("NEXT_REDIRECT")) {
+      throw error;
+    }
     console.log(error);
     return { error: "Registration failed" };
   }

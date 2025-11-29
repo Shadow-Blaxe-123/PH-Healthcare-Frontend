@@ -52,6 +52,7 @@ export default async function loginUser(
         "Content-Type": "application/json",
       },
     });
+    const result = await res.json();
     console.log("res:", res);
 
     const setCookieHeaders = res.headers.getSetCookie();
@@ -105,6 +106,9 @@ export default async function loginUser(
     //   ? redirectTo.toString()
     //   : getDefaultDashboardRoute(userRole);
     // redirect(redirectPath);
+    if (!result.success) {
+      throw new Error("Login failed");
+    }
 
     if (redirectTo) {
       const requestedPath = redirectTo.toString();
@@ -113,6 +117,8 @@ export default async function loginUser(
       } else {
         redirect(getDefaultDashboardRoute(userRole));
       }
+    } else {
+      redirect(getDefaultDashboardRoute(userRole));
     }
   } catch (error: any) {
     if (error?.digest?.startsWith("NEXT_REDIRECT")) {
