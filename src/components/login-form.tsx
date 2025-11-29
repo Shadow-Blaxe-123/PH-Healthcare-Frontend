@@ -7,7 +7,7 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from "./ui/field";
 import { Input } from "./ui/input";
 import loginUser from "@/services/auth/loginUser";
 
-const LoginForm = () => {
+const LoginForm = ({ redirect }: { redirect?: string }) => {
   const [state, formAction, ispending] = useActionState(loginUser, null);
 
   const getFieldError = (fieldName: string) => {
@@ -21,6 +21,7 @@ const LoginForm = () => {
 
   return (
     <form action={formAction}>
+      <input type="hidden" name="redirect" value={redirect} />
       <FieldGroup>
         <div className="grid grid-cols-1 gap-4">
           {/* Email */}

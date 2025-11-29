@@ -2,7 +2,9 @@
 "use server";
 
 import { parse } from "cookie";
+import { JwtPayload, verify } from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import z from "zod";
 
 const loginValidationSchema = z.object({
@@ -17,6 +19,7 @@ export default async function loginUser(
   formData: FormData
 ): Promise<any> {
   try {
+    const redirectTo = formData.get("redirect");
     let accessTokenObject: null | any = null;
     let refreshTokenObject: null | any = null;
     const loginData = {
@@ -86,9 +89,35 @@ export default async function loginUser(
       path: refreshTokenObject.Path || "/",
       sameSite: refreshTokenObject["SameSite"] || "none",
     });
+    const verifiedToken: JwtPayload | string = verify(
+      accessTokenObject.accessToken,
+      process.env.JWT_ACCESS_TOKEN_SECRET as string
+    );
+    if (typeof verifiedToken === "string") {
+      throw new Error("Invalid token");
+    }
+    const userRole = verifiedToken.role;
 
-    return result;
-  } catch (error) {
+    const getDefaultDashboardRoute = (role: string): string => {
+      if (role === "ADMIN") {
+        return "/admin/dashboard";
+      }
+      if (role === "DOCTOR") {
+        return "/doctor/dashboard";
+      }
+      if (role === "PATIENT") {
+        return "/dashboard";
+      }
+      return "/";
+    };
+    const redirectPath = redirectTo
+      ? redirectTo.toString()
+      : getDefaultDashboardRoute(userRole);
+    redirect(redirectPath);
+  } catch (error: any) {
+    if (error?.digest?.startsWith("NEXT_REDIRECT")) {
+      throw error;
+    }
     console.log(error);
     return { error: "Login failed" };
   }
