@@ -102,7 +102,7 @@ export default async function loginUser(
     const userRole: UserRole = verifiedToken.role;
 
     if (!result.success) {
-      throw new Error("Login failed");
+      throw new Error(result.message || "Login failed");
     }
 
     if (redirectTo) {
@@ -120,6 +120,13 @@ export default async function loginUser(
       throw error;
     }
     console.log(error);
-    return { error: "Login failed" };
+    return {
+      success: false,
+      message: `${
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Login Failed. You might have entered incorrect email or password."
+      }`,
+    };
   }
 }
